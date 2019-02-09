@@ -111,13 +111,3 @@ def getMatchesTeamId(conn, team_id, competition_id):
         return ids
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-
-def main():
-    conn = connect()
-    matches_team_ids = getMatchesTeamId(conn, getTeamId(conn, '1533'), '1')
-    competition_id = getCompetitionId(conn, "'District Champs'")
-    print(competition_id)
-    print(matches_team_ids)
-    print(getMetric(conn, matches_team_ids, "'Scale'"))
-
-main()
