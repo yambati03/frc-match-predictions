@@ -82,7 +82,8 @@ def getCompetitionId(conn, competition_name):
         print(error)
 
 
-def getTeamId(conn, number):
+def getTeamId(conn, team_key):
+    number = team_key[3:]
     try:
         cur = conn.cursor()
         statement = 'SELECT id FROM teams where number = ' + str(number)

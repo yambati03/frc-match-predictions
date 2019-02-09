@@ -24,4 +24,6 @@ def get_match_score(match_id, alliance):
     data = requests.get('https://www.thebluealliance.com/api/v3/match/' + match_id + '/simple', headers=headers)
     return data.json()['alliances'][alliance]['score']
 
-print(get_match_score('2018nccmp_qm2','red'))
+def get_match_teams(match_id):
+    data = requests.get('https://www.thebluealliance.com/api/v3/match/' + match_id + '/simple', headers=headers)
+    return [data.json()['alliances']['blue']['team_keys'],data.json()['alliances']['red']['team_keys']]

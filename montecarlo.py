@@ -26,7 +26,7 @@ def runSim(match_number):
 
     conn = db.connect()
     competition_id = db.getCompetitionId(conn, "'competition'")
-    alliances = tbainfo.getTeams(match_number)
+    alliances = tbainfo.get_match_teams(match_number)
     points = 0
 
     for alliance in alliances:
