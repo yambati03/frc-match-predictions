@@ -1,5 +1,4 @@
 import requests
-import json
 
 TBA_AUTH_KEY = "jQusM2aYtJLHXv3vxhDcPpIWzaxjMga5beNRWOarv6wdRwTF63vNpIsLYVANvCWE"
 headers = {'X-TBA-Auth-Key': TBA_AUTH_KEY}
