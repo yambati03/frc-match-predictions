@@ -2,6 +2,7 @@ import numpy as np
 from scipy.stats import truncnorm
 from db import dbtools
 from tbainfo import tbarequests
+import json
 
 CARGO_PT = 3
 PANEL_PT = 2
@@ -25,12 +26,16 @@ def get_predicted_mean(data):
 
 def run_sim(match_number):
     db = dbtools("2018Scouting", "frc900", "frc900")
-    competition_id = db.getCompetitionId("'competition'")
-    tbainfo = tbarequests('jQusM2aYtJLHXv3vxhDcPpIWzaxjMga5beNRWOarv6wdRwTF63vNpIsLYVANvCWE')
-    alliances = tbainfo.get_match_teams(match_number)
-    points = 0
+    with open('params.json') as f:
+        data = json.load(f)
+    competition_id = db.getCompetitionId(data['competition'])
+    tba = tbarequests('jQusM2aYtJLHXv3vxhDcPpIWzaxjMga5beNRWOarv6wdRwTF63vNpIsLYVANvCWE')
+    alliances = tba.get_match_teams(match_number)
+    predicted_score = []
 
     for alliance in alliances:
+
+        points = 0
 
         for team in alliance:
 
@@ -58,4 +63,8 @@ def run_sim(match_number):
                 else:
                     auto.append(CLIMB1)
 
-        points = (CARGO_PT * cargo) + (PANEL_PT * panel) + auto + climb
+            points += (CARGO_PT * cargo) + (PANEL_PT * panel) + auto + climb
+
+        predicted_score.append(points)
+
+    return predicted_score
