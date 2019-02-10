@@ -1,1 +1,3 @@
-# frc_match_predictions
+# FRC Match Predictions
+
+Uses Monte Carlo simulations to predict the outcome of FRC Matches. Made specifically for Destination: Deep Space and uses a custom database made by FRC Team 900.
