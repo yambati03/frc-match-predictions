@@ -1,7 +1,6 @@
 from tbainfo import tbarequests
 from db import dbtools
 import numpy as np
-import json
 import matplotlib.pyplot as plt
 
 db = dbtools("2018Scouting", "frc900", "frc900")

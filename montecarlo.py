@@ -13,13 +13,15 @@ CLIMB2 = 6
 CLIMB3 = 12
 
 
+# returns a normal distribution truncated at the specified min and max
 def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
     return truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
 
 
-def get_predicted_mean(data):
+# returns the mean value of randomly chosen points from a distribution
+def get_predicted_mean(data, num_points):
     mu, sigma, max, min = np.mean(data), np.std(data), float(np.max(data)), float(np.min(data))
-    s = get_truncated_normal(mu, sigma, min, max).rvs(1000)
+    s = get_truncated_normal(mu, sigma, min, max).rvs(num_points)
     mean = np.mean(s)
     return mean
 
@@ -42,8 +44,8 @@ def run_sim(match_number):
             team_id = db.get_team_id(team)
             matches_team_ids = db.get_matches_team_id(team_id, competition_id)
 
-            cargo = get_predicted_mean(db.get_metric(matches_team_ids, 'Cargo'))
-            panel = get_predicted_mean(db.get_metric(matches_team_ids, 'Panel'))
+            cargo = get_predicted_mean(db.get_metric(matches_team_ids, 'Cargo'),1000)
+            panel = get_predicted_mean(db.get_metric(matches_team_ids, 'Panel'),1000)
 
             auto_vals = db.get_metric(matches_team_ids, 'cross_auto_line')
             auto = []
