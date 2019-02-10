@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import truncnorm
 from db import dbtools
-import tbainfo
+from tbainfo import tbarequests
 
 CARGO_PT = 3
 PANEL_PT = 2
@@ -26,6 +26,7 @@ def get_predicted_mean(data):
 def run_sim(match_number):
     db = dbtools("2018Scouting", "frc900", "frc900")
     competition_id = db.getCompetitionId("'competition'")
+    tbainfo = tbarequests('jQusM2aYtJLHXv3vxhDcPpIWzaxjMga5beNRWOarv6wdRwTF63vNpIsLYVANvCWE')
     alliances = tbainfo.get_match_teams(match_number)
     points = 0
 
