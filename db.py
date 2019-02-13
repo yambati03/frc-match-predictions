@@ -82,13 +82,14 @@ class dbtools:
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
 
-    def get_matches_team_id(self, team_id, competition_id):
+    def get_matches_team_id(self, team_id, competition_id, match_cutoff):
         try:
             cur = self.conn.cursor()
             statement = 'SELECT matches_teams.id FROM matches_teams ' \
                         'INNER JOIN matches ON(matches_teams.match_id = matches.id) ' \
                         'INNER JOIN competitions ON(matches.competition_id = competitions.id) ' \
-                        'WHERE matches_teams.team_id = ' + str(team_id) + ' AND competitions.id = ' + competition_id
+                        'WHERE matches_teams.team_id = ' + str(team_id) + ' AND competitions.id = ' \
+                        + competition_id + ' AND matches.number <= ' + str(match_cutoff)
             cur.execute(statement)
             row = cur.fetchall()
 

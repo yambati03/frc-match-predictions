@@ -26,11 +26,9 @@ def get_predicted_mean(data, num_points):
     return mean
 
 
-def run_sim(match_number):
+def run_sim(match_number, competition):
     db = dbtools("2018Scouting", "frc900", "frc900")
-    with open('params.json') as f:
-        data = json.load(f)
-    competition_id = db.getCompetitionId(data['competition'])
+    competition_id = db.getCompetitionId(competition)
     tba = tbarequests('jQusM2aYtJLHXv3vxhDcPpIWzaxjMga5beNRWOarv6wdRwTF63vNpIsLYVANvCWE')
     alliances = tba.get_match_teams(match_number)
     predicted_score = []
@@ -44,8 +42,8 @@ def run_sim(match_number):
             team_id = db.get_team_id(team)
             matches_team_ids = db.get_matches_team_id(team_id, competition_id)
 
-            cargo = get_predicted_mean(db.get_metric(matches_team_ids, 'Cargo'),1000)
-            panel = get_predicted_mean(db.get_metric(matches_team_ids, 'Panel'),1000)
+            cargo = get_predicted_mean(db.get_metric(matches_team_ids, 'Cargo'), 1000)
+            panel = get_predicted_mean(db.get_metric(matches_team_ids, 'Panel'), 1000)
 
             auto_vals = db.get_metric(matches_team_ids, 'cross_auto_line')
             auto = []

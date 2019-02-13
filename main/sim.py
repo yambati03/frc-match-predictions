@@ -5,10 +5,10 @@ import json
 
 def main():
     tba = tbarequests('jQusM2aYtJLHXv3vxhDcPpIWzaxjMga5beNRWOarv6wdRwTF63vNpIsLYVANvCWE')
-    with open('params.json') as f:
+    with open('main\params.json') as f:
         data = json.load(f)
-    for i in range(data['match_cutoff'], tba.get_all_matches(data['competition'])[-1]):
-        score = montecarlo.run_sim(i)
+    for i in range(int(data['match_cutoff']) + 1, tba.get_all_matches(data['competition'])[-1]):
+        score = montecarlo.run_sim(i, data['competition'])
         win = ''
         if score[0] > score[1]:
             win = ' BLUE WINS'
