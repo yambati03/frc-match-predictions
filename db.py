@@ -46,12 +46,39 @@ class dbtools:
             cur = self.conn.cursor()
             data = []
             for i in matches_team_ids:
-                statement = 'SELECT "to" FROM cycles WHERE matches_team_id = ' + str(i) + \
-                            ' AND "to" = ' + metric + ' AND "failed" = false'
+                statement = 'SELECT "game_piece_type" FROM cycles WHERE matches_team_id = ' + str(i) + \
+                            ' AND "game_piece_type" = ' + metric + ' AND "failed" = false'
                 cur.execute(statement)
                 rows = cur.fetchall()
                 data.append(len(rows))
 
+            cur.close()
+            return data
+        except (Exception, psycopg2.DatabaseError) as error:
+            print(error)
+
+    def get_auto_metric(self, matches_team_ids, what):
+        try:
+            cur = self.conn.cursor()
+            data = []
+            for i in matches_team_ids:
+                if what == 'endgame':
+                    statement = 'SELECT "endgame_status" FROM matches_teams WHERE id = ' + str(i)
+                    cur.execute(statement)
+                    rows = cur.fetchall()
+                    data.append(rows[0][0])
+
+                if what == 'auto_start':
+                    statement = 'SELECT "starting_position" FROM matches_teams WHERE id = ' + str(i)
+                    cur.execute(statement)
+                    rows = cur.fetchall()
+                    data.append(rows[0][0])
+
+                if what == 'auto_cross':
+                    statement = 'SELECT "cross_hab_line" FROM matches_teams WHERE id = ' + str(i)
+                    cur.execute(statement)
+                    rows = cur.fetchall()
+                    data.append(rows[0][0])
             cur.close()
             return data
         except (Exception, psycopg2.DatabaseError) as error:
@@ -89,7 +116,7 @@ class dbtools:
                         'INNER JOIN matches ON(matches_teams.match_id = matches.id) ' \
                         'INNER JOIN competitions ON(matches.competition_id = competitions.id) ' \
                         'WHERE matches_teams.team_id = ' + str(team_id) + ' AND competitions.id = ' \
-                        + competition_id + ' AND matches.number <= ' + str(match_cutoff)
+                        + str(competition_id) + ' AND matches.number <= ' + str(match_cutoff)
             cur.execute(statement)
             row = cur.fetchall()
 

@@ -19,9 +19,12 @@ class tbarequests:
         return matches.json()
 
     # returns tba keys of all matches at a specified competition
-    def get_all_matches(self, comp_id):
+    def get_all_matches(self, comp_id, qm):
         matches = requests.get('https://www.thebluealliance.com/api/v3/event/' + comp_id + '/matches/keys', headers=self.headers)
-        return matches.json()
+        if not qm:
+            return matches.json()
+        else:
+            return sorted([int(s.replace(comp_id + "_qm", '')) for s in matches.json() if '_qm' in s])
 
     # returns the final score of a match; if an alliance is specified, will only return that alliance's final score
     def get_match_score(self, match_id, alliance):
@@ -53,3 +56,4 @@ class tbarequests:
             if winning_alliance == alliance:
                 wins += 1
         return wins/len(team_matches)
+

@@ -1,8 +1,6 @@
 import numpy as np
 from scipy.stats import truncnorm
-from db import dbtools
 from tbainfo import tbarequests
-import json
 
 CARGO_PT = 3
 PANEL_PT = 2
@@ -26,44 +24,27 @@ def get_predicted_mean(data, num_points):
     return mean
 
 
-def run_sim(match_number, competition):
-    db = dbtools("2018Scouting", "frc900", "frc900")
-    competition_id = db.getCompetitionId(competition)
+def run_sim(match_id, competition, match_cutoff, db):
+    competition_id = db.get_competition_id(competition)
     tba = tbarequests('jQusM2aYtJLHXv3vxhDcPpIWzaxjMga5beNRWOarv6wdRwTF63vNpIsLYVANvCWE')
-    alliances = tba.get_match_teams(match_number)
+    alliances = tba.get_match_teams(str(match_id))
     predicted_score = []
 
     for alliance in alliances:
 
         points = 0
+        taken_L3 = False
+        start_L2 = 0
 
         for team in alliance:
 
             team_id = db.get_team_id(team)
-            matches_team_ids = db.get_matches_team_id(team_id, competition_id)
+            matches_team_ids = db.get_matches_team_id(team_id, competition_id, match_cutoff)
+            cargo = get_predicted_mean(db.get_metric(matches_team_ids, "'Cargo'"), 1000)
+            panel = get_predicted_mean(db.get_metric(matches_team_ids, "'Panel'"), 1000)
 
-            cargo = get_predicted_mean(db.get_metric(matches_team_ids, 'Cargo'), 1000)
-            panel = get_predicted_mean(db.get_metric(matches_team_ids, 'Panel'), 1000)
-
-            auto_vals = db.get_metric(matches_team_ids, 'cross_auto_line')
-            auto = []
-            for i in auto_vals:
-                if i == 'level_2':
-                    auto.append(AUTO2)
-                else:
-                    auto.append(AUTO1)
-
-            climb = []
-            climb_vals = db.get_metric(matches_team_ids, 'endgame_status')
-            for i in climb_vals:
-                if i == 'level_3':
-                    auto.append(CLIMB3)
-                elif i == 'level 2':
-                    auto.append(CLIMB2)
-                else:
-                    auto.append(CLIMB1)
-
-            points += (CARGO_PT * cargo) + (PANEL_PT * panel) + auto + climb
+            print(db.get_auto_metric(matches_team_ids, 'endgame'))
+            points += (CARGO_PT * cargo) + (PANEL_PT * panel) #+ auto + climb
 
         predicted_score.append(points)
 
