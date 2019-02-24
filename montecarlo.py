@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.stats import truncnorm
 from tbainfo import tbarequests
+from collections import Counter
 
 CARGO_PT = 3
 PANEL_PT = 2
@@ -24,6 +25,15 @@ def get_predicted_mean(data, num_points):
     return mean
 
 
+def compute_auto_points(tba, db, alliance, competition_id, match_cutoff):
+    taken_L3 = False
+    start_L2 = 0
+    for team in alliance:
+        team_id = db.get_team_id(team)
+        matches_team_ids = db.get_matches_team_id(team_id, competition_id, match_cutoff)
+        endgame = Counter(db.get_auto_metric(matches_team_ids, 'endgame')).most_common()
+        auto = Counter(db.get_auto_metric(matches_team_ids, 'auto')).most_common()
+
 def run_sim(match_id, competition, match_cutoff, db):
     competition_id = db.get_competition_id(competition)
     tba = tbarequests('jQusM2aYtJLHXv3vxhDcPpIWzaxjMga5beNRWOarv6wdRwTF63vNpIsLYVANvCWE')
@@ -33,8 +43,6 @@ def run_sim(match_id, competition, match_cutoff, db):
     for alliance in alliances:
 
         points = 0
-        taken_L3 = False
-        start_L2 = 0
 
         for team in alliance:
 
@@ -43,8 +51,9 @@ def run_sim(match_id, competition, match_cutoff, db):
             cargo = get_predicted_mean(db.get_metric(matches_team_ids, "'Cargo'"), 1000)
             panel = get_predicted_mean(db.get_metric(matches_team_ids, "'Panel'"), 1000)
 
-            print(db.get_auto_metric(matches_team_ids, 'endgame'))
-            points += (CARGO_PT * cargo) + (PANEL_PT * panel) #+ auto + climb
+            points += (CARGO_PT * cargo) + (PANEL_PT * panel)
+
+        compute_auto_points(tba, db, alliance, competition_id, match_cutoff)
 
         predicted_score.append(points)
 

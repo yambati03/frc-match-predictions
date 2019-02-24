@@ -12,7 +12,7 @@ class dbtools:
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
 
-    def get_rows(self, vars, table):
+    def get_all_rows(self, vars, table):
         try:
             cur = self.conn.cursor()
 
@@ -30,7 +30,7 @@ class dbtools:
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
 
-    def query(self, statement):
+    def custom_query(self, statement):
         try:
             cur = self.conn.cursor()
             cur.execute(statement)
@@ -68,17 +68,13 @@ class dbtools:
                     rows = cur.fetchall()
                     data.append(rows[0][0])
 
-                if what == 'auto_start':
-                    statement = 'SELECT "starting_position" FROM matches_teams WHERE id = ' + str(i)
+                if what == 'auto':
+                    statement = 'SELECT "starting_position" FROM matches_teams WHERE id = ' + \
+                                str(i) + ' AND "cross_hab_line" = true'
                     cur.execute(statement)
                     rows = cur.fetchall()
                     data.append(rows[0][0])
 
-                if what == 'auto_cross':
-                    statement = 'SELECT "cross_hab_line" FROM matches_teams WHERE id = ' + str(i)
-                    cur.execute(statement)
-                    rows = cur.fetchall()
-                    data.append(rows[0][0])
             cur.close()
             return data
         except (Exception, psycopg2.DatabaseError) as error:
