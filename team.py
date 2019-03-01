@@ -3,7 +3,9 @@ class Team:
         self.tba_id = tba_id
         self.db_id = db_id
         self.cargo = 0
+        self.cargo_zscore = 0
         self.panel = 0
+        self.panel_zscore = 0
         self.endgame = []
         self.L3 = 0
         self.L2 = 0

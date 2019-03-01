@@ -24,8 +24,15 @@ def main():
         teams.append(team)
 
     mean_cargo = np.mean([team.cargo for team in teams])
+    std_cargo = np.std([team.cargo for team in teams])
     mean_panel = np.mean([team.panel for team in teams])
+    std_panel = np.std([team.panel for team in teams])
 
+    for team in teams:
+        team.cargo_zscore = float((team.cargo - mean_cargo) / std_cargo)
+        team.panel_zscore = (team.panel - mean_panel) / std_panel
+
+    print([i.tba_id for i in sorted(teams, key=lambda x: (x.cargo_zscore * (int(data['cargo_weight'])/100) + x.panel_zscore * (int(data['panel_weight']))/100), reverse=True)])
 
 def new_team(team_key, db, data):
     team_id = db.get_team_id(team_key)
