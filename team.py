@@ -7,6 +7,7 @@ class Team:
         self.panel = 0
         self.panel_zscore = 0
         self.endgame = []
+        self.endgame_score = 0
         self.L3 = 0
         self.L2 = 0
         self.L1 = 0
