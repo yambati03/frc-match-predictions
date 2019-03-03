@@ -42,9 +42,9 @@ def new_team(team_key, db, data):
     matches_team_ids = db.get_matches_team_id(team_id, comp_id, int(data["match_cutoff"]))
     team = Team(team_key, team_id)
 
-    team.cargo = np.mean(db.get_metric(matches_team_ids, "'Cargo'"))
-    team.panel = np.mean(db.get_metric(matches_team_ids, "'Panel'"))
-    team.endgame = db.get_auto_metric(matches_team_ids, 'endgame')
+    team.cargo = np.mean(db.get_metric(matches_team_ids, "'Cargo'", ''))
+    team.panel = np.mean(db.get_metric(matches_team_ids, "'Panel'", ''))
+    team.endgame = db.get_status(matches_team_ids, 'endgame')
     team.L3 = team.endgame.count('Level 3')
     team.L2 = team.endgame.count('Level 2')
     team.L1 = team.endgame.count('Level 1')
