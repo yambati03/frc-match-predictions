@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import truncnorm
 from tbainfo import tbarequests
-from sim_team import Team
+from team import SimTeam
 
 CARGO_PT = 3
 PANEL_PT = 2
@@ -22,12 +22,14 @@ def get_predicted_mean(data, num_points):
     mu, sigma, max, min = np.mean(data), np.std(data), float(np.max(data)), float(np.min(data))
     if mu == 0:
         return 0
+    if max == min:
+        return mu
     s = get_truncated_normal(mu, sigma, min, max).rvs(num_points)
     mean = np.mean(s)
     return mean
 
 
-def compute_endgame_points(tba, db, alliance, competition_id, match_cutoff):
+def compute_endgame_points(db, alliance, competition_id, match_cutoff):
     L3_team = []
     L2_teams = []
     L1_teams = []
@@ -35,7 +37,7 @@ def compute_endgame_points(tba, db, alliance, competition_id, match_cutoff):
     for team in alliance:
         team_id = db.get_team_id(team)
         matches_team_ids = db.get_matches_team_id(team_id, competition_id, match_cutoff)
-        team_obj = Team(team_id, db.get_auto_metric(matches_team_ids, 'endgame'), [])
+        team_obj = SimTeam(team_id, db.get_auto_metric(matches_team_ids, 'endgame'), [])
         team_objs.append(team_obj)
     for team in team_objs:
         if L3_team == [] and team.status == 'L3':
@@ -62,17 +64,18 @@ def compute_endgame_points(tba, db, alliance, competition_id, match_cutoff):
                 del L2_teams[-1]
             else:
                 L1_teams.append(team)
+
     return len(L3_team) * CLIMB3 + len(L2_teams) * CLIMB2 + len(L1_teams) * CLIMB1
 
 
-def compute_auto_points(tba, db, alliance, competition_id, match_cutoff):
+def compute_auto_hab_points(db, alliance, competition_id, match_cutoff):
     L2_teams = []
     L1_teams = []
     team_objs = []
     for team in alliance:
         team_id = db.get_team_id(team)
         matches_team_ids = db.get_matches_team_id(team_id, competition_id, match_cutoff)
-        team_obj = Team(team_id, [], db.get_auto_metric(matches_team_ids, 'auto'))
+        team_obj = SimTeam(team_id, [], db.get_auto_metric(matches_team_ids, 'auto'))
         team_objs.append(team_obj)
     for team in team_objs:
         if team.auto_status == -1:
@@ -91,6 +94,7 @@ def compute_auto_points(tba, db, alliance, competition_id, match_cutoff):
                 del L2_teams[-1]
             else:
                 L1_teams.append(team)
+
     return len(L2_teams) * AUTO2 + len(L1_teams) * AUTO1
 
 
@@ -102,21 +106,35 @@ def run_sim(match_id, competition, match_cutoff, db):
 
     for alliance in alliances:
 
+        panel = 0
+        cargo = 0
+        panel_auto = 0
+        cargo_auto = 0
         points = 0
 
         for team in alliance:
 
             team_id = db.get_team_id(team)
             matches_team_ids = db.get_matches_team_id(team_id, competition_id, match_cutoff)
-            cargo = get_predicted_mean(db.get_metric(matches_team_ids, "'Cargo'"), 1000)
-            panel = get_predicted_mean(db.get_metric(matches_team_ids, "'Panel'"), 1000)
+            cargo = get_predicted_mean(db.get_metric(matches_team_ids, "'Cargo'", ''), 10000)
+            panel = get_predicted_mean(db.get_metric(matches_team_ids, "'Panel'", ''), 10000)
 
-            if panel < cargo:
-                cargo = panel
+            if len(db.get_metric(matches_team_ids, "'Cargo'", 'true')) > 3:
+                cargo_auto += get_predicted_mean(db.get_metric(matches_team_ids, "'Cargo'", 'true'), 10000)
+            else:
+                cargo_auto += 0
+            if len(db.get_metric(matches_team_ids, "'Panel'", 'true')) > 3:
+                panel_auto += get_predicted_mean(db.get_metric(matches_team_ids, "'Panel'", 'true'), 10000)
+            else:
+                panel_auto += 0
 
-            points += (CARGO_PT * cargo) + (PANEL_PT * panel)
+        if panel < cargo:
+            cargo = panel
+        if panel_auto < cargo_auto:
+            cargo_auto = panel_auto
 
-        points += compute_endgame_points(tba, db, alliance, competition_id, match_cutoff) + compute_auto_points(tba, db, alliance, competition_id, match_cutoff)
+        points += (CARGO_PT * cargo) + (PANEL_PT * panel) + (CARGO_PT * cargo_auto) + (PANEL_PT * panel_auto) + \
+                  compute_endgame_points(db, alliance, competition_id, match_cutoff) + compute_auto_hab_points(db, alliance, competition_id, match_cutoff)
 
         predicted_score.append(points)
 

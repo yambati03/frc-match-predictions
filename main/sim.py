@@ -18,8 +18,8 @@ def main():
         else:
             win = 'RED WINS'
         accuracy.append(compute_accuracy(win, tba, data['tba_competitionid'] + '_qm' + str(i)))
-        print('match number: ' + str(i) + ' --> blue: ' + str(score[0]) + ' // red: ' + str(score[1]) + ' -->' + ' ' + win)
-    print(accuracy.count(1)/len(accuracy) * 100)
+        print('match number: ' + str(i) + ' --> red: ' + str(score[1]) + ' // blue: ' + str(score[0]) + ' -->' + ' ' + win)
+    print(str(round((accuracy.count(1)/len(accuracy)) * 100, 3)) + '%')
 
 
 def compute_accuracy(win, tba, match_id):

@@ -41,13 +41,17 @@ class dbtools:
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
 
-    def get_metric(self, matches_team_ids, metric):
+    def get_metric(self, matches_team_ids, metric, in_autonomous):
         try:
             cur = self.conn.cursor()
             data = []
             for i in matches_team_ids:
-                statement = 'SELECT "game_piece_type" FROM cycles WHERE matches_team_id = ' + str(i) + \
-                            ' AND "game_piece_type" = ' + metric + ' AND "failed" = false'
+                if in_autonomous == '':
+                    statement = 'SELECT "game_piece_type" FROM cycles WHERE matches_team_id = ' + str(i) + \
+                                ' AND "game_piece_type" = ' + metric + ' AND "failed" = false'
+                else:
+                    statement = 'SELECT "game_piece_type" FROM cycles WHERE matches_team_id = ' + str(i) + \
+                                ' AND "game_piece_type" = ' + metric + ' AND "failed" = false and "in_autonomous" = ' + in_autonomous
                 cur.execute(statement)
                 rows = cur.fetchall()
                 data.append(len(rows))
