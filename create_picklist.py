@@ -33,7 +33,7 @@ def main():
         team.panel_zscore = (team.panel - mean_panel) / std_panel
         team.endgame_score = compute_endgame_score(team)
 
-    print([i.tba_id for i in sorted(teams, key=lambda x: (x.cargo_zscore * (int(data['cargo_weight'])/100) + x.panel_zscore * (int(data['panel_weight']))/100 + x.endgame_score * (int(data['endgame_weight']))), reverse=True)])
+    print([i.tba_id for i in sorted(teams, key=lambda x: (x.cargo_zscore * (cargo_weight/100) + x.panel_zscore * (panel_weight/100 + x.endgame_score * (endgame_weight/100))), reverse=True)])
 
 
 def new_team(team_key, db, data):
