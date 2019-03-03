@@ -50,7 +50,7 @@ class dbtools:
                     statement = 'SELECT "game_piece_type" FROM cycles WHERE matches_team_id = ' + str(i) + \
                                 ' AND "game_piece_type" = ' + metric + ' AND "failed" = false'
                 else:
-                    statement = 'SELECT "game_piece_type" FROM cycles WHERE matches_team_id = ' + str(i) + \
+                    statement = 'SELECT "game_piece_type", "to" FROM cycles WHERE matches_team_id = ' + str(i) + \
                                 ' AND "game_piece_type" = ' + metric + ' AND "failed" = false and "in_autonomous" = ' + in_autonomous
                 cur.execute(statement)
                 rows = cur.fetchall()
@@ -61,7 +61,7 @@ class dbtools:
         except (Exception, psycopg2.DatabaseError) as error:
             print(error)
 
-    def get_auto_metric(self, matches_team_ids, what):
+    def get_status(self, matches_team_ids, what):
         try:
             cur = self.conn.cursor()
             data = []

@@ -37,7 +37,7 @@ def compute_endgame_points(db, alliance, competition_id, match_cutoff):
     for team in alliance:
         team_id = db.get_team_id(team)
         matches_team_ids = db.get_matches_team_id(team_id, competition_id, match_cutoff)
-        team_obj = SimTeam(team_id, db.get_auto_metric(matches_team_ids, 'endgame'), [])
+        team_obj = SimTeam(team_id, db.get_status(matches_team_ids, 'endgame'), [])
         team_objs.append(team_obj)
     for team in team_objs:
         if L3_team == [] and team.status == 'L3':
@@ -57,7 +57,7 @@ def compute_endgame_points(db, alliance, competition_id, match_cutoff):
                     sorted(L2_teams, key = lambda x: x.L2)
                     L1_teams.append(L2_teams[-1])
                     del L2_teams[-1]
-            if team.status == 'L2' and team.L2 > L2_teams[0][-1]:
+            if team.status == 'L2' and team.L2 > L2_teams[0].L2:
                 L2_teams.append(team)
                 sorted(L2_teams, key=lambda x: x.L2)
                 L1_teams.append(L2_teams[-1])
@@ -75,7 +75,7 @@ def compute_auto_hab_points(db, alliance, competition_id, match_cutoff):
     for team in alliance:
         team_id = db.get_team_id(team)
         matches_team_ids = db.get_matches_team_id(team_id, competition_id, match_cutoff)
-        team_obj = SimTeam(team_id, [], db.get_auto_metric(matches_team_ids, 'auto'))
+        team_obj = SimTeam(team_id, [], db.get_status(matches_team_ids, 'auto'))
         team_objs.append(team_obj)
     for team in team_objs:
         if team.auto_status == -1:
@@ -87,7 +87,7 @@ def compute_auto_hab_points(db, alliance, competition_id, match_cutoff):
         else:
             sorted(L2_teams, key=lambda x: x.L2)
             sorted(L1_teams, key=lambda x: x.L1)
-            if team.auto_status == 'L2' and team.L2 > L2_teams[0][-1]:
+            if team.auto_status == 'L2' and team.L2 > L2_teams[0].L2:
                 L2_teams.append(team)
                 sorted(L2_teams, key=lambda x: x.L2)
                 L1_teams.append(L2_teams[-1])
@@ -116,17 +116,12 @@ def run_sim(match_id, competition, match_cutoff, db):
 
             team_id = db.get_team_id(team)
             matches_team_ids = db.get_matches_team_id(team_id, competition_id, match_cutoff)
-            cargo = get_predicted_mean(db.get_metric(matches_team_ids, "'Cargo'", ''), 10000)
-            panel = get_predicted_mean(db.get_metric(matches_team_ids, "'Panel'", ''), 10000)
 
-            if len(db.get_metric(matches_team_ids, "'Cargo'", 'true')) > 3:
-                cargo_auto += get_predicted_mean(db.get_metric(matches_team_ids, "'Cargo'", 'true'), 10000)
-            else:
-                cargo_auto += 0
-            if len(db.get_metric(matches_team_ids, "'Panel'", 'true')) > 3:
-                panel_auto += get_predicted_mean(db.get_metric(matches_team_ids, "'Panel'", 'true'), 10000)
-            else:
-                panel_auto += 0
+            cargo += get_predicted_mean(db.get_metric(matches_team_ids, "'Cargo'", 'false'), 10000)
+            panel += get_predicted_mean(db.get_metric(matches_team_ids, "'Panel'", 'false'), 10000)
+
+            cargo_auto += get_predicted_mean(db.get_metric(matches_team_ids, "'Cargo'", 'true'), 10000)
+            panel_auto += get_predicted_mean(db.get_metric(matches_team_ids, "'Panel'", 'true'), 10000)
 
         if panel < cargo:
             cargo = panel

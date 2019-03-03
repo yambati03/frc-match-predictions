@@ -18,7 +18,7 @@ def main():
         else:
             win = 'RED WINS'
         accuracy.append(compute_accuracy(win, tba, data['tba_competitionid'] + '_qm' + str(i)))
-        print('match number: ' + str(i) + ' --> red: ' + str(score[1]) + ' // blue: ' + str(score[0]) + ' -->' + ' ' + win)
+        print('match number: ' + str(i) + ' --> red: ' + str(score[1]) + ' // blue: ' + str(score[0]) + ' -->' + ' ' + win, tba.get_winning_alliance(data['tba_competitionid'] + '_qm' + str(i)))
     print(str(round((accuracy.count(1)/len(accuracy)) * 100, 3)) + '%')
 
 
