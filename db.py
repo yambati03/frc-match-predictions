@@ -66,15 +66,15 @@ class dbtools:
                     statement = 'SELECT "endgame_status" FROM matches_teams WHERE id = ' + str(i)
                     cur.execute(statement)
                     rows = cur.fetchall()
-                    data.append(rows[0][0])
-
+                    if rows != []:
+                        data.append(rows[0][0])
                 if what == 'auto':
                     statement = 'SELECT "starting_position" FROM matches_teams WHERE id = ' + \
                                 str(i) + ' AND "cross_hab_line" = true'
                     cur.execute(statement)
                     rows = cur.fetchall()
-                    data.append(rows[0][0])
-
+                    if rows != []:
+                        data.append(rows[0][0])
             cur.close()
             return data
         except (Exception, psycopg2.DatabaseError) as error:
