@@ -29,23 +29,31 @@ def get_predicted_mean(data, num_points):
     return mean
 
 
+#  returns predicted endgame points
 def compute_endgame_points(db, alliance, competition_id, match_cutoff):
     L3_team = []
     L2_teams = []
     L1_teams = []
     team_objs = []
+
+    # create and populate team objects containing endgame data
     for team in alliance:
         team_id = db.get_team_id(team)
         matches_team_ids = db.get_matches_team_id(team_id, competition_id, match_cutoff)
         team_obj = SimTeam(team_id, db.get_status(matches_team_ids, 'endgame'), [])
         team_objs.append(team_obj)
+
+    # loop through teams and predict endgame statuses based on likelihood of a certain climb level
     for team in team_objs:
+        # append team if space
         if L3_team == [] and team.status == 'L3':
             L3_team.append(team)
         elif len(L2_teams) < 2 and team.status == 'L2':
             L2_teams.append(team)
         elif len(L1_teams) < 3 and team.status == 'L1':
             L1_teams.append(team)
+        # if no space, only append to a climb level if likelihood is greater
+        # than previously assigned team and move the team down a climb level
         else:
             sorted(L2_teams, key=lambda x: x.L2)
             sorted(L1_teams, key=lambda x: x.L1)
@@ -54,7 +62,7 @@ def compute_endgame_points(db, alliance, competition_id, match_cutoff):
                 del L3_team[0]
                 L3_team.append(team)
                 if len(L2_teams) > 2:
-                    sorted(L2_teams, key = lambda x: x.L2)
+                    sorted(L2_teams, key=lambda x: x.L2)
                     L1_teams.append(L2_teams[-1])
                     del L2_teams[-1]
             if team.status == 'L2' and team.L2 > L2_teams[0].L2:
@@ -68,15 +76,20 @@ def compute_endgame_points(db, alliance, competition_id, match_cutoff):
     return len(L3_team) * CLIMB3 + len(L2_teams) * CLIMB2 + len(L1_teams) * CLIMB1
 
 
+# returns predicted auto points for hab line crossing only
 def compute_auto_hab_points(db, alliance, competition_id, match_cutoff):
     L2_teams = []
     L1_teams = []
     team_objs = []
+
+    # create and populate team objects containing auto data
     for team in alliance:
         team_id = db.get_team_id(team)
         matches_team_ids = db.get_matches_team_id(team_id, competition_id, match_cutoff)
         team_obj = SimTeam(team_id, [], db.get_status(matches_team_ids, 'auto'))
         team_objs.append(team_obj)
+    # if no space, only append to a starting level if likelihood is greater
+    # than previously assigned team and move the team down a starting level
     for team in team_objs:
         if team.auto_status == -1:
             continue
@@ -117,19 +130,23 @@ def run_sim(match_id, competition, match_cutoff, db):
             team_id = db.get_team_id(team)
             matches_team_ids = db.get_matches_team_id(team_id, competition_id, match_cutoff)
 
+            # add a teams' predicted score contribution to the overall alliance score
             cargo += get_predicted_mean(db.get_metric(matches_team_ids, "'Cargo'", 'false'), 10000)
             panel += get_predicted_mean(db.get_metric(matches_team_ids, "'Panel'", 'false'), 10000)
 
             cargo_auto += get_predicted_mean(db.get_metric(matches_team_ids, "'Cargo'", 'true'), 10000)
             panel_auto += get_predicted_mean(db.get_metric(matches_team_ids, "'Panel'", 'true'), 10000)
 
+        # if more cargo is placed then panels, floor the number of cargo to number of panels
+        # since cargo that is not panel-ed does not score
         if panel < cargo:
             cargo = panel
         if panel_auto < cargo_auto:
             cargo_auto = panel_auto
 
         points += (CARGO_PT * cargo) + (PANEL_PT * panel) + (CARGO_PT * cargo_auto) + (PANEL_PT * panel_auto) + \
-                  compute_endgame_points(db, alliance, competition_id, match_cutoff) + compute_auto_hab_points(db, alliance, competition_id, match_cutoff)
+            compute_endgame_points(db, alliance, competition_id, match_cutoff) + \
+            compute_auto_hab_points(db, alliance, competition_id, match_cutoff)
 
         predicted_score.append(points)
 

@@ -19,6 +19,7 @@ def main():
 
     teams = []
 
+    # create and populate team objects
     for team_key in team_keys:
         team = new_team(team_key, db, data)
         teams.append(team)
