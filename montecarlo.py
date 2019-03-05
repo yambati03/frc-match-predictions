@@ -141,8 +141,6 @@ def run_sim(match_id, competition, match_cutoff, db):
         # since cargo that is not panel-ed does not score
         if panel < cargo:
             cargo = panel
-        if panel_auto < cargo_auto:
-            cargo_auto = panel_auto
 
         points += (CARGO_PT * cargo) + (PANEL_PT * panel) + (CARGO_PT * cargo_auto) + (PANEL_PT * panel_auto) + \
             compute_endgame_points(db, alliance, competition_id, match_cutoff) + \
