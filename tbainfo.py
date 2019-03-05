@@ -36,6 +36,15 @@ class tbarequests:
         data = requests.get('https://www.thebluealliance.com/api/v3/match/' + match_id + '/simple', headers=self.headers)
         return [data.json()['alliances']['blue']['team_keys'], data.json()['alliances']['red']['team_keys']]
 
+    def get_prepopulated_state(self, match_id):
+        data = requests.get('https://www.thebluealliance.com/api/v3/match/' + match_id, header=self.headers)
+        return [[data['score_breakdown']['blue']['preMatchBay1'], data['score_breakdown']['blue']['preMatchBay2'],
+                 data['score_breakdown']['blue']['preMatchBay3'], data['score_breakdown']['blue']['preMatchBay6'],
+                 data['score_breakdown']['blue']['preMatchBay7'], data['score_breakdown']['blue']['preMatchBay8']],
+                [data['score_breakdown']['red']['preMatchBay1'], data['score_breakdown']['red']['preMatchBay2'],
+                 data['score_breakdown']['red']['preMatchBay3'], data['score_breakdown']['red']['preMatchBay6'],
+                 data['score_breakdown']['red']['preMatchBay7'], data['score_breakdown']['red']['preMatchBay8']]]
+
     # returns the winning alliance of a match
     def get_winning_alliance(self, match_id):
         data = requests.get('https://www.thebluealliance.com/api/v3/match/' + match_id + '/simple', headers=self.headers)
