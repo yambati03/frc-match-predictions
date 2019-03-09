@@ -1,21 +1,20 @@
 from db import dbtools
 from tbainfo import tbarequests
-import json
 from team import Team
 import numpy as np
+import globals
 
 
 def main():
+    globals.init()
     db = dbtools("2019Scouting", "frc900", "frc900")
     tba = tbarequests('jQusM2aYtJLHXv3vxhDcPpIWzaxjMga5beNRWOarv6wdRwTF63vNpIsLYVANvCWE')
-    with open('picklist_params.json') as f:
-        data = json.load(f)
 
-    cargo_weight = int(data["cargo_weight"])/100
-    panel_weight = int(data["panel_weight"])/100
-    endgame_weight = int(data["endgame_weight"])/100
+    cargo_weight = int(globals.cargo_weight)/100
+    panel_weight = int(globals.panel_weight)/100
+    endgame_weight = int(globals.endgame_weight)/100
 
-    team_keys = tba.get_teams(data["tba_competitionid"])
+    team_keys = tba.get_teams(globals.tba_competition_id)
 
     teams = []
 
@@ -39,7 +38,7 @@ def main():
 
 def new_team(team_key, db, data):
     team_id = db.get_team_id(team_key)
-    comp_id = db.get_competition_id(data["competition"])
+    comp_id = db.get_competition_id(globals.competition)
     matches_team_ids = db.get_matches_team_id(team_id, comp_id, int(data["match_cutoff"]))
     team = Team(team_key, team_id)
 

@@ -2,6 +2,7 @@ import numpy as np
 from scipy.stats import truncnorm
 from tbainfo import tbarequests
 from team import SimTeam
+import globals
 
 CARGO_PT = 3
 PANEL_PT = 2
@@ -18,30 +19,45 @@ def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
 
 
 # returns the mean value of randomly chosen points from a distribution
-def get_predicted_mean(data, num_points):
+def get_dist(data, num_points):
     mu, sigma, max, min = np.mean(data), np.std(data), float(np.max(data)), float(np.min(data))
     if mu == 0:
         return 0
     if max == min:
         return mu
     s = get_truncated_normal(mu, sigma, min, max).rvs(num_points)
-    mean = np.mean(s)
-    return mean
+
+    return list(s)
+
+
+def create_team_objs(alliance, db):
+
+    objs = []
+
+    for team in alliance:
+
+        team_id = db.get_team_id(team)
+        matches_team_ids = db.get_matches_team_id(team_id, db.get_competition_id(globals.competition), globals.match_cutoff)
+        team_obj = SimTeam(team_id, team, matches_team_ids)
+
+        team_obj.cargo = get_dist(db.get_metric(matches_team_ids, "'Cargo'", 'false'), 100000)
+        team_obj.panel = get_dist(db.get_metric(matches_team_ids, "'Panel'", 'false'), 100000)
+
+        team_obj.cargo_auto = get_dist(db.get_metric(matches_team_ids, "'Cargo'", 'true'), 100000)
+        team_obj.panel_auto = get_dist(db.get_metric(matches_team_ids, "'Panel'", 'true'), 100000)
+
+        team_obj.populate_endgame_auto(db.get_status(matches_team_ids, 'endgame'), db.get_status(matches_team_ids, 'auto'))
+
+        objs.append(team_obj)
+
+    return objs
 
 
 #  returns predicted endgame points
-def compute_endgame_points(db, alliance, competition_id, match_cutoff):
+def compute_endgame_points(team_objs):
     L3_team = []
     L2_teams = []
     L1_teams = []
-    team_objs = []
-
-    # create and populate team objects containing endgame data
-    for team in alliance:
-        team_id = db.get_team_id(team)
-        matches_team_ids = db.get_matches_team_id(team_id, competition_id, match_cutoff)
-        team_obj = SimTeam(team_id, db.get_status(matches_team_ids, 'endgame'), [])
-        team_objs.append(team_obj)
 
     # loop through teams and predict endgame statuses based on likelihood of a certain climb level
     for team in team_objs:
@@ -73,21 +89,14 @@ def compute_endgame_points(db, alliance, competition_id, match_cutoff):
             else:
                 L1_teams.append(team)
 
-    return len(L3_team) * CLIMB3 + len(L2_teams) * CLIMB2 + len(L1_teams) * CLIMB1
+    return (len(L3_team) * CLIMB3) + (len(L2_teams) * CLIMB2) + (len(L1_teams) * CLIMB1)
 
 
 # returns predicted auto points for hab line crossing only
-def compute_auto_hab_points(db, alliance, competition_id, match_cutoff):
+def compute_auto_hab_points(team_objs):
     L2_teams = []
     L1_teams = []
-    team_objs = []
 
-    # create and populate team objects containing auto data
-    for team in alliance:
-        team_id = db.get_team_id(team)
-        matches_team_ids = db.get_matches_team_id(team_id, competition_id, match_cutoff)
-        team_obj = SimTeam(team_id, [], db.get_status(matches_team_ids, 'auto'))
-        team_objs.append(team_obj)
     # if no space, only append to a starting level if likelihood is greater
     # than previously assigned team and move the team down a starting level
     for team in team_objs:
@@ -108,39 +117,43 @@ def compute_auto_hab_points(db, alliance, competition_id, match_cutoff):
             else:
                 L1_teams.append(team)
 
-    return len(L2_teams) * AUTO2 + len(L1_teams) * AUTO1
+    return (len(L2_teams) * AUTO2) + (len(L1_teams) * AUTO1)
 
 
-def run_sim(match_id, competition, match_cutoff, db):
-    competition_id = db.get_competition_id(competition)
+def run_sim(match_id, db):
+    globals.init()
     tba = tbarequests('jQusM2aYtJLHXv3vxhDcPpIWzaxjMga5beNRWOarv6wdRwTF63vNpIsLYVANvCWE')
     alliances = tba.get_match_teams(str(match_id))
     predicted_score = []
 
     for alliance in alliances:
 
-        panel = 0
-        cargo = 0
-        panel_auto = 0
-        cargo_auto = 0
-        points = 0
+        pos = []
+        team_objs = create_team_objs(alliance, db)
 
-        for team in alliance:
+        for i in range(1000):
 
-            team_id = db.get_team_id(team)
-            matches_team_ids = db.get_matches_team_id(team_id, competition_id, match_cutoff)
+            panel = 0
+            cargo = 0
+            panel_auto = 0
+            cargo_auto = 0
+            points = 0
 
-            # add a teams' predicted score contribution to the overall alliance score
-            cargo += get_predicted_mean(db.get_metric(matches_team_ids, "'Cargo'", 'false'), 10000)
-            panel += get_predicted_mean(db.get_metric(matches_team_ids, "'Panel'", 'false'), 10000)
+            for team in team_objs:
 
-            cargo_auto += get_predicted_mean(db.get_metric(matches_team_ids, "'Cargo'", 'true'), 10000)
-            panel_auto += get_predicted_mean(db.get_metric(matches_team_ids, "'Panel'", 'true'), 10000)
+                # add a teams' predicted score contribution to the overall alliance score
+                cargo += team.get_rand_cargo()
+                panel += team.get_rand_panel()
 
-        points += (CARGO_PT * cargo) + (PANEL_PT * panel) + (CARGO_PT * cargo_auto) + (PANEL_PT * panel_auto) + \
-            compute_endgame_points(db, alliance, competition_id, match_cutoff) + \
-            compute_auto_hab_points(db, alliance, competition_id, match_cutoff)
+                cargo_auto += team.get_rand_auto_cargo()
+                panel_auto += team.get_rand_auto_panel()
 
-        predicted_score.append(points)
+            points += (CARGO_PT * cargo) + (PANEL_PT * panel) + (CARGO_PT * cargo_auto) + (PANEL_PT * panel_auto) + \
+                compute_endgame_points(team_objs) + \
+                compute_auto_hab_points(team_objs)
+
+            pos.append(points)
+
+        predicted_score.append(np.mean(pos))
 
     return predicted_score
