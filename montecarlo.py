@@ -119,7 +119,6 @@ def compute_auto_hab_points(team_objs):
 
     return (len(L2_teams) * AUTO2) + (len(L1_teams) * AUTO1)
 
-
 def run_sim(match_id, db):
     globals.init()
     tba = tbarequests('jQusM2aYtJLHXv3vxhDcPpIWzaxjMga5beNRWOarv6wdRwTF63vNpIsLYVANvCWE')
@@ -154,6 +153,6 @@ def run_sim(match_id, db):
 
             pos.append(points)
 
-        predicted_score.append(np.mean(pos))
+        predicted_score.append([np.mean(pos), np.std(pos)])
 
     return predicted_score

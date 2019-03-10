@@ -7,7 +7,7 @@ import globals
 
 def main():
     globals.init()
-    db = dbtools("2019Scouting", "frc900", "frc900")
+    db = dbtools("Wake", "frc900", "frc900")
     tba = tbarequests('jQusM2aYtJLHXv3vxhDcPpIWzaxjMga5beNRWOarv6wdRwTF63vNpIsLYVANvCWE')
 
     cargo_weight = int(globals.cargo_weight)/100
@@ -20,7 +20,7 @@ def main():
 
     # create and populate team objects
     for team_key in team_keys:
-        team = new_team(team_key, db, data)
+        team = new_team(team_key, db)
         teams.append(team)
 
     mean_cargo = np.mean([team.cargo for team in teams])
@@ -36,10 +36,10 @@ def main():
     print([i.tba_id for i in sorted(teams, key=lambda x: (x.cargo_zscore * (cargo_weight/100) + x.panel_zscore * (panel_weight/100 + x.endgame_score * (endgame_weight/100))), reverse=True)])
 
 
-def new_team(team_key, db, data):
+def new_team(team_key, db):
     team_id = db.get_team_id(team_key)
     comp_id = db.get_competition_id(globals.competition)
-    matches_team_ids = db.get_matches_team_id(team_id, comp_id, int(data["match_cutoff"]))
+    matches_team_ids = db.get_matches_team_id(team_id, comp_id, globals.match_cutoff)
     team = Team(team_key, team_id)
 
     team.cargo = np.mean(db.get_metric(matches_team_ids, "'Cargo'", ''))
