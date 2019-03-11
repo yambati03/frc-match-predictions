@@ -2,7 +2,7 @@
   "competition": "'FNC District Wake County Event'",
   "tba_competitionid": "2019ncwak",
   "match_cutoff": 58,
-  "cargo_weight": 85,
-  "panel_weight": 15,
+  "cargo_weight": 20,
+  "panel_weight": 80,
   "endgame_weight": 0
 }

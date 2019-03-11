@@ -18,9 +18,9 @@ def main():
             win = 'BLUE WINS'
         else:
             win = 'RED WINS'
-        # accuracy.append(compute_accuracy(win, tba, globals.tba_competition_id + '_qm' + str(i)))
+        accuracy.append(compute_accuracy(win, tba, globals.tba_competition_id + '_qm' + str(i)))
         print('match number: ' + str(i) + ' --> red: ' + str(score[1][0]) + ' std: ' + str(round(score[1][1], 2)) + ' // blue: ' + str(score[0][0]) + ' std: ' + str(round(score[0][1], 2)) + ' -->' + ' ' + win, tba.get_winning_alliance(globals.tba_competition_id + '_qm' + str(i)))
-    # print(str(round((accuracy.count(1)/len(accuracy)) * 100, 3)) + '%')
+    print(str(round((accuracy.count(1)/len(accuracy)) * 100, 3)) + '%')
 
 
 # accuracy is defined as number of correct predictions over the number of predicted matches
@@ -29,6 +29,17 @@ def compute_accuracy(win, tba, match_id):
         return 1
     else:
         return -1
+
+
+def sim_match(match_id):
+    db = dbtools("Wake", "frc900", "frc900")
+    score = montecarlo.run_sim(match_id, db)
+    win = ''
+    if score[0][0] > score[1][0]:
+        win = 'BLUE WINS'
+    else:
+        win = 'RED WINS'
+    print('match number: ' + match_id + ' --> red: ' + str(score[1][0]) + ' std: ' + str(round(score[1][1], 2)) + ' // blue: ' + str(score[0][0]) + ' std: ' + str(round(score[0][1], 2)) + ' -->' + ' ' + win)
 
 
 main()
