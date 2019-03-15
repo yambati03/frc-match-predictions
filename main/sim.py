@@ -4,6 +4,7 @@ from db import dbtools
 import globals
 
 
+# predicts match outcome for all matches after a given match cutoff
 def main():
     globals.init()
     db = dbtools("Wake", "frc900", "frc900")
@@ -12,7 +13,7 @@ def main():
 
     # loop through matches and run a simulation for each
     for i in range(globals.match_cutoff + 1, tba.get_all_matches(globals.tba_competition_id, 1)[-1] + 1):
-        score = montecarlo.run_sim(globals.tba_competition_id + '_qm' + str(i), db)
+        score = montecarlo.run_sim(db, match_id=globals.tba_competition_id + '_qm' + str(i))
         win = ''
         if score[0][0] > score[1][0]:
             win = 'BLUE WINS'
@@ -30,16 +31,28 @@ def compute_accuracy(win, tba, match_id):
     else:
         return -1
 
-
+# predicts the outcome of a single match
 def sim_match(match_id):
     db = dbtools("Wake", "frc900", "frc900")
-    score = montecarlo.run_sim(match_id, db)
+    score = montecarlo.run_sim(db, match_id=match_id)
     win = ''
     if score[0][0] > score[1][0]:
         win = 'BLUE WINS'
     else:
         win = 'RED WINS'
     print('match number: ' + match_id + ' --> red: ' + str(score[1][0]) + ' std: ' + str(round(score[1][1], 2)) + ' // blue: ' + str(score[0][0]) + ' std: ' + str(round(score[0][1], 2)) + ' -->' + ' ' + win)
+
+
+# predicts match outcome given fabricated alliances - argument should be in form [[team, team, team],[team, team, team]]
+def sim_alliances(alliances):
+    db = dbtools("Wake", "frc900", "frc900")
+    score = montecarlo.run_sim(db, alliances=alliances)
+    win = ''
+    if score[1][0] > score[0][0]:
+        win = 'BLUE WINS'
+    else:
+        win = 'RED WINS'
+    print('red: ' + str(score[0][0]) + ' std: ' + str(round(score[0][1], 2)) + ' // blue: ' + str(score[1][0]) + ' std: ' + str(round(score[1][1], 2)) + ' -->' + ' ' + win)
 
 
 main()

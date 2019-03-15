@@ -119,10 +119,14 @@ def compute_auto_hab_points(team_objs):
 
     return (len(L2_teams) * AUTO2) + (len(L1_teams) * AUTO1)
 
-def run_sim(match_id, db):
+
+def run_sim(db, match_id=-1, alliances=-1):
     globals.init()
     tba = tbarequests('jQusM2aYtJLHXv3vxhDcPpIWzaxjMga5beNRWOarv6wdRwTF63vNpIsLYVANvCWE')
-    alliances = tba.get_match_teams(str(match_id))
+    if match_id != -1:
+        alliances = tba.get_match_teams(str(match_id))
+    else:
+        pass
     predicted_score = []
 
     for alliance in alliances:
@@ -130,7 +134,7 @@ def run_sim(match_id, db):
         pos = []
         team_objs = create_team_objs(alliance, db)
 
-        for i in range(1000):
+        for i in range(10000):
 
             panel = 0
             cargo = 0
