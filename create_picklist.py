@@ -7,7 +7,7 @@ import globals
 
 def main():
     globals.init()
-    db = dbtools("Wake", "frc900", "frc900")
+    db = dbtools("Champs", "frc900", "frc900")
     tba = tbarequests('jQusM2aYtJLHXv3vxhDcPpIWzaxjMga5beNRWOarv6wdRwTF63vNpIsLYVANvCWE')
 
     cargo_weight = int(globals.cargo_weight)/100
@@ -33,7 +33,13 @@ def main():
         team.panel_zscore = (team.panel - mean_panel) / std_panel
         team.endgame_score = compute_endgame_score(team)
 
-    print([i.tba_id for i in sorted(teams, key=lambda x: (x.cargo_zscore * (cargo_weight/100) + x.panel_zscore * (panel_weight/100 + x.endgame_score * (endgame_weight/100))), reverse=True)])
+    picklist = [i for i in sorted(teams, key=lambda x: (x.cargo_zscore * (cargo_weight/100) + x.panel_zscore * (panel_weight/100 + x.endgame_score * (endgame_weight/100))), reverse=True)]
+    out = open('pick.txt', 'w')
+
+    for team in picklist:
+        out.write(team.get_data(picklist.index(team)))
+
+    out.close()
 
 
 def new_team(team_key, db):
@@ -42,9 +48,13 @@ def new_team(team_key, db):
     matches_team_ids = db.get_matches_team_id(team_id, comp_id, globals.match_cutoff)
     team = Team(team_key, team_id)
 
+    team.matches = matches_team_ids
     team.cargo = np.mean(db.get_metric(matches_team_ids, "'Cargo'", ''))
     team.panel = np.mean(db.get_metric(matches_team_ids, "'Panel'", ''))
+    team.cargo_raw = db.get_metric(matches_team_ids, "'Cargo'", '')
+    team.panel_raw = db.get_metric(matches_team_ids, "'Panel'", '')
     team.endgame = db.get_status(matches_team_ids, 'endgame')
+    team.auto = db.get_status(matches_team_ids, 'auto')
     team.L3 = team.endgame.count('Level 3')
     team.L2 = team.endgame.count('Level 2')
     team.L1 = team.endgame.count('Level 1')

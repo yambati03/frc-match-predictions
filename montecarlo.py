@@ -25,7 +25,7 @@ def get_dist(data, num_points):
         return 0
     if max == min:
         return mu
-    s = get_truncated_normal(mu, sigma, min, max).rvs(num_points)
+    s = get_truncated_normal(mean=mu, sd=sigma, low=min, upp=max).rvs(num_points)
 
     return list(s)
 

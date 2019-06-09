@@ -26,6 +26,13 @@ class tbarequests:
         else:
             return sorted([int(s.replace(comp_id + "_qm", '')) for s in matches.json() if '_qm' in s])
 
+    def get_rankings(self, comp_id):
+        data = requests.get('https://www.thebluealliance.com/api/v3/event/' + comp_id + '/rankings', headers=self.headers).json()['rankings']
+        ranking = []
+        for team in data:
+            ranking.append(team['team_key'])
+        return ranking
+
     # returns the final score of a match; if an alliance is specified, will only return that alliance's final score
     def get_match_score(self, match_id, alliance):
         data = requests.get('https://www.thebluealliance.com/api/v3/match/' + match_id + '/simple', headers=self.headers)
@@ -35,15 +42,6 @@ class tbarequests:
     def get_match_teams(self, match_id):
         data = requests.get('https://www.thebluealliance.com/api/v3/match/' + match_id + '/simple', headers=self.headers)
         return [data.json()['alliances']['blue']['team_keys'], data.json()['alliances']['red']['team_keys']]
-
-    def get_prepopulated_state(self, match_id):
-        data = requests.get('https://www.thebluealliance.com/api/v3/match/' + match_id, header=self.headers)
-        return [[data['score_breakdown']['blue']['preMatchBay1'], data['score_breakdown']['blue']['preMatchBay2'],
-                 data['score_breakdown']['blue']['preMatchBay3'], data['score_breakdown']['blue']['preMatchBay6'],
-                 data['score_breakdown']['blue']['preMatchBay7'], data['score_breakdown']['blue']['preMatchBay8']],
-                [data['score_breakdown']['red']['preMatchBay1'], data['score_breakdown']['red']['preMatchBay2'],
-                 data['score_breakdown']['red']['preMatchBay3'], data['score_breakdown']['red']['preMatchBay6'],
-                 data['score_breakdown']['red']['preMatchBay7'], data['score_breakdown']['red']['preMatchBay8']]]
 
     # returns the winning alliance of a match
     def get_winning_alliance(self, match_id):

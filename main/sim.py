@@ -7,7 +7,7 @@ import globals
 # predicts match outcome for all matches after a given match cutoff
 def main():
     globals.init()
-    db = dbtools("Wake", "frc900", "frc900")
+    db = dbtools("Champs", "frc900", "frc900")
     tba = tbarequests('jQusM2aYtJLHXv3vxhDcPpIWzaxjMga5beNRWOarv6wdRwTF63vNpIsLYVANvCWE')
     accuracy = []
 
@@ -31,9 +31,10 @@ def compute_accuracy(win, tba, match_id):
     else:
         return -1
 
+
 # predicts the outcome of a single match
 def sim_match(match_id):
-    db = dbtools("Wake", "frc900", "frc900")
+    db = dbtools("Champs", "frc900", "frc900")
     score = montecarlo.run_sim(db, match_id=match_id)
     win = ''
     if score[0][0] > score[1][0]:
@@ -45,7 +46,7 @@ def sim_match(match_id):
 
 # predicts match outcome given fabricated alliances - argument should be in form [[team, team, team],[team, team, team]]
 def sim_alliances(alliances):
-    db = dbtools("Wake", "frc900", "frc900")
+    db = dbtools("Champs", "frc900", "frc900")
     score = montecarlo.run_sim(db, alliances=alliances)
     win = ''
     if score[1][0] > score[0][0]:
@@ -53,6 +54,13 @@ def sim_alliances(alliances):
     else:
         win = 'RED WINS'
     print('red: ' + str(score[0][0]) + ' std: ' + str(round(score[0][1], 2)) + ' // blue: ' + str(score[1][0]) + ' std: ' + str(round(score[1][1], 2)) + ' -->' + ' ' + win)
+
+# output predicted rankings
+def rankings_out(tba):
+    out = open('rankings.txt', 'w')
+    rankings = tba.get_rankings()
+
+    out.close()
 
 
 main()
