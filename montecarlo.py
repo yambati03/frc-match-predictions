@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.stats import truncnorm
+import scipy.stats as stats
 from tbainfo import tbarequests
 from team import SimTeam
 import globals
@@ -15,7 +15,7 @@ CLIMB3 = 12
 
 # returns a normal distribution truncated at the specified min and max
 def get_truncated_normal(mean=0, sd=1, low=0, upp=10):
-    return truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
+    return stats.truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
 
 
 # returns the mean value of randomly chosen points from a distribution
@@ -26,12 +26,11 @@ def get_dist(data, num_points):
     if max == min:
         return mu
     s = get_truncated_normal(mean=mu, sd=sigma, low=min, upp=max).rvs(num_points)
-
     return list(s)
 
 
+# generate objects for each given team and populate with distributed data points
 def create_team_objs(alliance, db):
-
     objs = []
 
     for team in alliance:
@@ -53,7 +52,7 @@ def create_team_objs(alliance, db):
     return objs
 
 
-#  returns predicted endgame points
+# returns predicted endgame points
 def compute_endgame_points(team_objs):
     L3_team = []
     L2_teams = []
@@ -68,6 +67,7 @@ def compute_endgame_points(team_objs):
             L2_teams.append(team)
         elif len(L1_teams) < 3 and team.status == 'L1':
             L1_teams.append(team)
+
         # if no space, only append to a climb level if likelihood is greater
         # than previously assigned team and move the team down a climb level
         else:
