@@ -1,6 +1,6 @@
 from db import dbtools
 from tbainfo import tbarequests
-from team import Team
+from picklist_team import Team
 import numpy as np
 import globals
 

@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.stats as stats
 from tbainfo import tbarequests
-from team import SimTeam
+from sim_team import SimTeam
 import globals
 
 CARGO_PT = 3

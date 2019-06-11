@@ -24,7 +24,8 @@ class TeamScore:
 
 
 class AllianceScore:
-    def __init__(self, color):
+    def __init__(self, color, teams):
+        self.teams = teams
         self.color = color
         self.team1 = TeamScore()
         self.team2 = TeamScore()
@@ -42,14 +43,12 @@ class AllianceScore:
         self.cargo = self.team1.total_cargo + self.team2.total_cargo + self.team3.total_cargo
 
 
-
 class Match:
-
-    def __init__(self, alliances, match_id, red_score, blue_score):
+    def __init__(self, alliances, match_id, red_score, blue_score, teams):
         self.match_id = match_id
         self.blue_teams = alliances[0]
         self.red_teams = alliances[1]
-        self.red_score = AllianceScore('red')
-        self.blue_score = AllianceScore('blue')
+        self.red_score = AllianceScore('red', teams[0])
+        self.blue_score = AllianceScore('blue', teams[1])
 
 
