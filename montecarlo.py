@@ -2,6 +2,9 @@ import numpy as np
 import scipy.stats as stats
 from tbainfo import tbarequests
 from sim_team import SimTeam
+from match_score import Match
+from match_score import TeamScore
+from match_score import AllianceScore
 import globals
 
 CARGO_PT = 3
@@ -127,36 +130,39 @@ def run_sim(db, match_id=-1, alliances=-1):
         alliances = tba.get_match_teams(str(match_id))
     else:
         pass
+
     predicted_score = []
 
     for alliance in alliances:
 
-        pos = []
         team_objs = create_team_objs(alliance, db)
 
-        for i in range(10000):
+        alliancescore = AllianceScore(alliance)
+        team_scores = []
 
-            panel = 0
-            cargo = 0
-            panel_auto = 0
-            cargo_auto = 0
-            points = 0
+        for team in team_objs:
 
-            for team in team_objs:
+            # add a teams' predicted score contribution to the overall alliance score
+            cargo = np.mean(team.cargo)
+            panel = np.mean(team.panel)
 
-                # add a teams' predicted score contribution to the overall alliance score
-                cargo += team.get_rand_cargo()
-                panel += team.get_rand_panel()
+            cargo_auto = np.mean(team.cargo_auto)
+            panel_auto = np.mean(team.panel_auto)
 
-                cargo_auto += team.get_rand_auto_cargo()
-                panel_auto += team.get_rand_auto_panel()
+            teamscore = TeamScore(team.tba_id, cargo, panel, cargo_auto, panel_auto)
 
-            points += (CARGO_PT * cargo) + (PANEL_PT * panel) + (CARGO_PT * cargo_auto) + (PANEL_PT * panel_auto) + \
-                compute_endgame_points(team_objs) + \
-                compute_auto_hab_points(team_objs)
+            teamscore.sum_vars()
 
-            pos.append(points)
+            team_scores.append(teamscore)
 
-        predicted_score.append([np.mean(pos), np.std(pos)])
+        alliancescore.team1 = team_scores[0]
+        alliancescore.team2 = team_scores[1]
+        alliancescore.team3 = team_scores[2]
+        alliancescore.sum_vars()
+        alliancescore.totalscore += compute_endgame_points(team_objs) + compute_auto_hab_points(team_objs)
 
-    return predicted_score
+        predicted_score.append(alliancescore)
+
+    match = Match(predicted_score[0], predicted_score[1], match_id)
+
+    return match
