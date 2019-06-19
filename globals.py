@@ -2,7 +2,7 @@ import json
 
 
 def init():
-    with open('C:/Users/Yashas/Documents/frc_match_predictions/main/params.json') as f:
+    with open('C:/Users/Yashas/Documents/Programming/frc_match_predictions/main/params.json') as f:
         data = json.load(f)
 
     global competition

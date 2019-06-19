@@ -14,13 +14,15 @@ def main():
     # loop through matches and run a simulation for each
     for i in range(globals.match_cutoff + 1, tba.get_all_matches(globals.tba_competition_id, 1)[-1] + 1):
         score = montecarlo.run_sim(db, match_id=globals.tba_competition_id + '_qm' + str(i))
+        red_score = round(score.red.score, 2)
+        blue_score = round(score.blue.score, 2)
         win = ''
-        if score[0][0] > score[1][0]:
+        if blue_score > red_score:
             win = 'BLUE WINS'
         else:
             win = 'RED WINS'
         accuracy.append(compute_accuracy(win, tba, globals.tba_competition_id + '_qm' + str(i)))
-        print('match number: ' + str(i) + ' --> red: ' + str(score[1][0]) + ' std: ' + str(round(score[1][1], 2)) + ' // blue: ' + str(score[0][0]) + ' std: ' + str(round(score[0][1], 2)) + ' -->' + ' ' + win, tba.get_winning_alliance(globals.tba_competition_id + '_qm' + str(i)))
+        print('match number: ' + str(i) + ' --> red: ' + str(red_score) + ' // blue: ' + str(blue_score) + ' -->' + ' ' + win, tba.get_winning_alliance(globals.tba_competition_id + '_qm' + str(i)))
     print(str(round((accuracy.count(1)/len(accuracy)) * 100, 3)) + '%')
 
 
