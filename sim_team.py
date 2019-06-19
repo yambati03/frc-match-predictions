@@ -12,40 +12,20 @@ class SimTeam:
         self.cargo_auto = []
         self.panel_auto = []
 
-        self.L3, self.L2, self.L1 = 0, 0, 0
-        self.status = ''
-        self.auto_L2, self.auto_L1 = 0, 0
-        self.auto_status = ''
+        self.endgame_status = {}
+        self.auto_status = {}
 
     def get_db_id(self):
         return self.db_id
 
-    def get_predicted_endgame(self):
-        if self.L3 >= self.L2 and self.L3 >= self.L1 and self.L3 > 0.43:
-            return 'L3'
-        elif self.L2 >= self.L1 and self.L2 >= self.L3:
-            return 'L2'
-        else:
-            return 'L1'
-
-    def get_predicted_auto(self):
-        if self.auto_L2 >= self.auto_L1:
-            return 'L2'
-        elif self.auto_L1 >= self.auto_L2:
-            return 'L1'
-        else:
-            return -1
-
     def populate_endgame_auto(self, endgame, auto):
         if len(endgame) > 0:
-            self.L3 = endgame.count('Level 3') / len(endgame)
-            self.L2 = endgame.count('Level 2') / len(endgame)
-            self.L1 = endgame.count('Level 1') / len(endgame)
-        self.status = self.get_predicted_endgame()
+            self.endgame_status['L3'] = endgame.count('Level 3') / len(endgame)
+            self.endgame_status['L2'] = endgame.count('Level 2') / len(endgame)
+            self.endgame_status['L1'] =  endgame.count('Level 1') / len(endgame)
         if len(auto) > 0:
-            self.auto_L2 = auto.count('Level 2') / len(auto)
-            self.auto_L1 = auto.count('Level 1') / len(auto)
-        self.auto_status = self.get_predicted_auto()
+            self.auto_status['L2'] = auto.count('Level 2') / len(auto)
+            self.auto_status['L1'] = auto.count('Level 1') / len(auto)
 
     def get_rand_cargo(self):
         if type(self.cargo) != list:

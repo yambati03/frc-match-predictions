@@ -55,72 +55,70 @@ def create_team_objs(alliance, db):
     return objs
 
 
+def sort_dict(dict, cutoff):
+    sorted_x = sorted(dict.items(), key=lambda kv: kv[1])
+    sorted_x = [x[0] for x in sorted_x if x[1] > cutoff]
+    return sorted_x
+
+
 # returns predicted endgame points
-def compute_endgame_points(team_objs):
-    L3_team = []
-    L2_teams = []
-    L1_teams = []
+def get_endgame(team_objs):
+    L1 = {}
+    L2 = {}
+    L3 = {}
 
-    # loop through teams and predict endgame statuses based on likelihood of a certain climb level
+    statuses = {}
+
     for team in team_objs:
-        # append team if space
-        if L3_team == [] and team.status == 'L3':
-            L3_team.append(team)
-        elif len(L2_teams) < 2 and team.status == 'L2':
-            L2_teams.append(team)
-        elif len(L1_teams) < 3 and team.status == 'L1':
-            L1_teams.append(team)
+        statuses[team.tba_id] = ''
+        L1[team.tba_id] = team.endgame_status.get('L1')
+        L2[team.tba_id] = team.endgame_status.get('L2')
+        L3[team.tba_id] = team.endgame_status.get('L3')
 
-        # if no space, only append to a climb level if likelihood is greater
-        # than previously assigned team and move the team down a climb level
-        else:
-            sorted(L2_teams, key=lambda x: x.L2)
-            sorted(L1_teams, key=lambda x: x.L1)
-            if team.status == 'L3' and team.L3 > L3_team[0].L3:
-                L2_teams.append(L3_team[0])
-                del L3_team[0]
-                L3_team.append(team)
-                if len(L2_teams) > 2:
-                    sorted(L2_teams, key=lambda x: x.L2)
-                    L1_teams.append(L2_teams[-1])
-                    del L2_teams[-1]
-            if team.status == 'L2' and team.L2 > L2_teams[0].L2:
-                L2_teams.append(team)
-                sorted(L2_teams, key=lambda x: x.L2)
-                L1_teams.append(L2_teams[-1])
-                del L2_teams[-1]
-            else:
-                L1_teams.append(team)
+    L1 = sort_dict(L1, 0.1)
+    L2 = sort_dict(L2, 0.15)
+    L3 = sort_dict(L3, 0.2)
 
-    return (len(L3_team) * CLIMB3) + (len(L2_teams) * CLIMB2) + (len(L1_teams) * CLIMB1)
+    for id in L1:
+        statuses[id] = 'L1'
+
+    for i, id in enumerate(L2):
+        if i > 1:
+            break
+        statuses[id] = 'L2'
+
+    for i, id in enumerate(L3):
+        if i > 0:
+            break
+        statuses[id] = 'L3'
+
+    return statuses
 
 
 # returns predicted auto points for hab line crossing only
-def compute_auto_hab_points(team_objs):
-    L2_teams = []
-    L1_teams = []
+def get_auto(team_objs):
+    L1 = {}
+    L2 = {}
 
-    # if no space, only append to a starting level if likelihood is greater
-    # than previously assigned team and move the team down a starting level
+    statuses = {}
+
     for team in team_objs:
-        if team.auto_status == -1:
-            continue
-        if len(L2_teams) < 2 and team.auto_status == 'L2':
-            L2_teams.append(team)
-        elif len(L1_teams) < 3 and team.auto_status == 'L1':
-            L1_teams.append(team)
-        else:
-            sorted(L2_teams, key=lambda x: x.L2)
-            sorted(L1_teams, key=lambda x: x.L1)
-            if team.auto_status == 'L2' and team.L2 > L2_teams[0].L2:
-                L2_teams.append(team)
-                sorted(L2_teams, key=lambda x: x.L2)
-                L1_teams.append(L2_teams[-1])
-                del L2_teams[-1]
-            else:
-                L1_teams.append(team)
+        statuses[team.tba_id] = ''
+        L1[team.tba_id] = team.auto_status.get('L1')
+        L2[team.tba_id] =  team.auto_status.get('L2')
 
-    return (len(L2_teams) * AUTO2) + (len(L1_teams) * AUTO1)
+    L1 = sort_dict(L1, 0.1)
+    L2 = sort_dict(L2, 0.15)
+
+    for id in L1:
+        statuses[id] = 'L1'
+
+    for i, id in enumerate(L2):
+        if i > 1:
+            break
+        statuses[id] = 'L2'
+
+    return statuses
 
 
 def run_sim(db, match_id=-1, alliances=-1):
@@ -136,9 +134,9 @@ def run_sim(db, match_id=-1, alliances=-1):
     for alliance in alliances:
 
         team_objs = create_team_objs(alliance, db)
-
-        alliancescore = AllianceScore(alliance)
         team_scores = []
+        endgame = get_endgame(team_objs)
+        auto = get_auto(team_objs)
 
         for team in team_objs:
 
@@ -149,17 +147,11 @@ def run_sim(db, match_id=-1, alliances=-1):
             cargo_auto = np.mean(team.cargo_auto)
             panel_auto = np.mean(team.panel_auto)
 
-            teamscore = TeamScore(team.tba_id, cargo, panel, cargo_auto, panel_auto)
-
-            teamscore.sum_vars()
+            teamscore = TeamScore(team.tba_id, cargo, panel, cargo_auto, panel_auto, auto.get(team.tba_id), endgame.get(team.tba_id))
 
             team_scores.append(teamscore)
 
-        alliancescore.team1 = team_scores[0]
-        alliancescore.team2 = team_scores[1]
-        alliancescore.team3 = team_scores[2]
-        alliancescore.sum_vars()
-        alliancescore.totalscore += compute_endgame_points(team_objs) + compute_auto_hab_points(team_objs)
+        alliancescore = AllianceScore(team_scores[0], team_scores[1], team_scores[2])
 
         predicted_score.append(alliancescore)
 

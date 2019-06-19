@@ -14,8 +14,8 @@ def main():
     # loop through matches and run a simulation for each
     for i in range(globals.match_cutoff + 1, tba.get_all_matches(globals.tba_competition_id, 1)[-1] + 1):
         score = montecarlo.run_sim(db, match_id=globals.tba_competition_id + '_qm' + str(i))
-        red_score = score.red.totalscore
-        blue_score = score.blue.totalscore
+        red_score = round(score.red.score, 2)
+        blue_score = round(score.blue.score, 2)
         win = ''
         if blue_score > red_score:
             win = 'BLUE WINS'

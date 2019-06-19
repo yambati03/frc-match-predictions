@@ -8,44 +8,59 @@ CLIMB3 = 12
 
 
 class TeamScore:
-    def __init__(self, team_id, t_cargo, t_panel, a_cargo, a_panel):
-        self.team_id = team_id
+    def __init__(self, tba_id, t_cargo, t_panel, a_cargo, a_panel, auto, endgame):
+        self.tba_id = tba_id
         self.t_cargo = t_cargo
         self.t_panel = t_panel
         self.a_cargo = a_cargo
         self.a_panel = a_panel
-        self.total_cargo = 0
-        self.total_panel = 0
-        self.total = 0
-        self.auto_hab = ''
-        self.endgame = ''
-
-    def sum_vars(self):
         self.total_cargo = self.t_cargo + self.a_cargo
         self.total_panel = self.t_panel + self.a_panel
         self.total = self.total_cargo + self.total_panel
+        self.auto = auto
+        self.endgame = endgame
 
 
 class AllianceScore:
-    def __init__(self, teams):
-        self.teams = teams
-        self.team1 = None
-        self.team2 = None
-        self.team3 = None
-        self.score = 0
-        self.cargo = 0
-        self.panel = 0
+    def __init__(self, team1, team2, team3):
+        self.team1 = team1
+        self.team2 = team2
+        self.team3 = team3
+        self.cargo = self.team1.total_cargo + self.team2.total_cargo + self.team3.total_cargo
+        self.panel = self.team1.total_panel + self.team2.total_panel + self.team3.total_panel
         self.auto_L1 = 0
         self.auto_L2 = 0
         self.endgame_L1 = 0
         self.endgame_L2 = 0
         self.endgame_L3 = 0
-        self.totalscore = 0
+        self.auto_endgame()
+        self.score = self.cargo + self.panel + self.auto_L1 + self.auto_L2 + self.endgame_L1 + self.endgame_L2 + self.endgame_L3
 
-    def sum_vars(self):
-        self.cargo = self.team1.total_cargo + self.team2.total_cargo + self.team3.total_cargo
-        self.panel = self.team1.total_panel + self.team2.total_panel + self.team3.total_panel
-        self.totalscore += self.cargo + self.panel
+    def get_team(self, tba_id):
+        if self.team1.tba_id == tba_id:
+            return self.team1
+        elif self.team2.tba_id == tba_id:
+            return self.team2
+        elif self.team3.tba_id == tba_id:
+            return self.team3
+        else:
+            return -1
+
+    def auto_endgame(self):
+        teams = [self.team1, self.team2, self.team3]
+        for team in teams:
+            if team.auto == 'L1':
+                self.auto_L1 += AUTO1
+            elif team.auto == 'L2':
+                self.auto_L2 += AUTO2
+
+            if team.endgame == 'L1':
+                self.endgame_L1 += CLIMB1
+            elif team.endgame == 'L2':
+                self.endgame_L2 += CLIMB2
+            elif team.endgame == 'L3':
+                self.endgame_L3 += CLIMB3
+
 
 
 class Match:
