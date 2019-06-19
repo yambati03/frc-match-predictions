@@ -2,9 +2,7 @@ import numpy as np
 import scipy.stats as stats
 from tbainfo import tbarequests
 from sim_team import SimTeam
-from match_score import Match
-from match_score import TeamScore
-from match_score import AllianceScore
+from match_score import Match, TeamScore, AllianceScore
 import globals
 
 CARGO_PT = 3
